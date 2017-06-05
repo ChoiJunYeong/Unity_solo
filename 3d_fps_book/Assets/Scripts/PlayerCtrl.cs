@@ -1,0 +1,87 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+[System.Serializable]
+public class Anim 
+{
+    public AnimationClip idle;
+    public AnimationClip runForward;
+    public AnimationClip runBackward;
+    public AnimationClip runLeft;
+    public AnimationClip runRight;
+}
+public class PlayerCtrl : MonoBehaviour {
+    private float h = 0.0f;
+    private float v = 0.0f;
+    private float r = 0.0f;
+    private Transform tr;
+    public float moveSpeed = 10.0f;
+    public float rotSpeed = 100.0f;
+    public Anim anim;
+    public Animation _animation;
+    public int hp = 100;
+    private int initHp;
+    public Image imgHpbar;
+    
+
+    public delegate void PlayerDieHandler();
+    public static event PlayerDieHandler OnPlayerDie;
+    // Use this for initialization
+    void Start () {
+        initHp = hp;
+        tr = GetComponent<Transform>();
+        _animation = GetComponentInChildren<Animation>();
+        _animation.clip = anim.idle;
+        _animation.Play();
+    }
+	
+	// Update is called once per frame
+	void Update () {
+        h = Input.GetAxis("Horizontal");
+        v = Input.GetAxis("Vertical");
+        r = Input.GetAxis("HorizontalRotation");
+        Vector3 moveDir = (Vector3.forward * v) + (Vector3.right * h);
+        tr.Translate(moveDir.normalized * moveSpeed * Time.deltaTime, Space.Self);
+        tr.Rotate(Vector3.up * Time.deltaTime * rotSpeed * Input.GetAxis("Mouse X"));
+        tr.Rotate(Vector3.up * r * 3);
+        if (v >= 0.1f)
+        {
+            _animation.CrossFade(anim.runForward.name, 0.3f);
+        }
+        else if (v <= -0.1f)
+        {
+            _animation.CrossFade(anim.runBackward.name, 0.3f);
+        }
+        else if (h >= 0.1f)
+        {
+            _animation.CrossFade(anim.runRight.name, 0.3f);
+        }
+        else if (h <= -0.1f)
+        {
+            _animation.CrossFade(anim.runLeft.name, 0.3f);
+        }
+        else
+        {
+            _animation.CrossFade(anim.idle.name,0.3f);
+        }
+    }
+    void OnTriggerEnter(Collider coll){
+        if (coll.gameObject.tag == "PUNCH") {
+            hp -= 10;
+            imgHpbar.fillAmount = (float)hp / (float)initHp;
+            Debug.Log("Player HP = " + hp.ToString());
+            if (hp <= 0)
+                PlayerDie();
+        }
+    }
+    void PlayerDie() {
+        Debug.Log("Player Die !!");
+
+        //GameObject[] monsters = GameObject.FindGameObjectsWithTag("MONSTER");
+        //foreach (GameObject monster in monsters)
+        //    monster.SendMessage("OnPlayerDie", SendMessageOptions.DontRequireReceiver);
+        OnPlayerDie();
+        GameMgr.instance.isGameOver = true;
+    }
+}
