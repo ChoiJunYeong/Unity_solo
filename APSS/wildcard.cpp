@@ -1,90 +1,98 @@
+//dynamic programming
+//APSS 8-2
 #include<iostream>
-#include<string.h>
+#include<string>
 using namespace std;
 //quick sort
 void sort(string* words,int size){
-	if(size==0) return;
-	else if(size==1) return;
+	if(size<=1)
+		return;
 	else if(size==2){
 		if(words[0].compare(words[1])>0){
 			string temp=words[0];
 			words[0]=words[1];
 			words[1]=temp;
 		}
-		return;
 	}
 	else{
 		int left=0,right=size-2;
 		string pivot=words[size-1];
-		while(left<=right){
-			if(words[right].compare(pivot)>=0)
-				right--;
-			else if(words[left].compare(pivot)<0)
+		while(left<right){
+			while(pivot.compare(words[left])>0)
 				left++;
-			else{
-				string temp = words[left];
-				words[left] = words[right];
-				words[right] = temp;
+			while(pivot.compare(words[right])<=0 && right>0)
+				right--;
+			if(left<right){
+				string temp=words[left];
+				words[left]=words[right];
+				words[right]=temp;
+				right--;
+				left++;
 			}
 		}
-		if(left == size-1)
-			left--;
+		if(left==size-1)
+			sort(words,size-1);
 		else{
-			string temp = words[left];
-			words[left] = words[size-1];
-			words[size-1] = temp;
+			words[size-1]=words[left];
+			words[left]=pivot;
+			sort(words,left);
+			sort(&words[left+1],size-left-1);
 		}
-		sort(words,left+1);
-		sort(&words[left+1],size-left-2);
-		return;
 	}
 }
-//find words match to pattern
-bool match(string pattern,string word){
-	if(pattern.size()==0 && word.size()==0)
-		return true;
-	else if(pattern.size()==0 || word.size()==0)
+bool match(string pattern,string word,int Psize,int Wsize){
+	int Pptr=0,Wptr=0;
+	if(Wsize==0 &&Psize!=0)
 		return false;
-	if(pattern[0]>='A' && pattern[0]<='z'){
-		if(pattern[0]==word[0])
-			return match(&pattern[1],&word[1]);
-		else
-			return false;
+	while(pattern[Pptr]=='?'||pattern[Pptr]==word[Wptr]){
+		Pptr++;
+		Wptr++;
+		if(Psize<=Pptr || Wsize<=Wptr)
+			break;
 	}
-	else if(pattern[0]=='?')
-		return match(&pattern[1],&word[1]);
-	else if(pattern[0]=='*')
-		return match(pattern,&word[1]) || match(&pattern[1],&word[1]);
+	if(pattern[Pptr]=='*'&& Pptr<Psize-1){
+		bool ret=false;
+		int Pstar=Pptr+1;
+		for(;pattern[Pstar]=='*';Pstar++);
+		for(int Wstar=Pstar;Wstar<=Wsize;Wstar++){
+			if(word[Wstar]==pattern[Pstar])
+				ret = ret || match(&pattern[Pstar+1],&word[Wstar+1],Psize-Pstar-1,Wsize-Wstar-1);
+
+		}
+		return ret;
+	}
+	else if(pattern[Pptr]=='*')
+		return true;
+	else if(Pptr==Psize && Wptr==Wsize){
+		return true;
+	}
+	else
+		return false;
 }
 int main(){
 	int Case;
 	cin>>Case;
-	string ret[500];
-	int flag = 0;
-	string pattern;
-	int num_words;
-	int k;
+	string result[500];
+	int k=0;
 	for(int i=0;i<Case;i++){
+		string pattern;
+		int match_size=0;
 		cin>>pattern;
-		cin>>num_words;
-		string *words = new string[num_words],*result= new string[num_words];
-		k =0;
-		for(int j=0;j<num_words;j++){
-			cin>>words[i];
-			if(match(pattern,words[i])){
-				result[k]=words[i];
-				k++;
+		int num_word;
+		cin>>num_word;
+		string words[num_word];
+		for(int j=0;j<num_word;j++)
+			cin>>words[j];
+		for(int j=0;j<num_word;j++){
+			if(match(pattern,words[j],pattern.size(),words[j].size())){
+				result[match_size+k]=words[j];
+				match_size++;
 			}
 		}
-		sort(result,k);
-		for(int i=0;i<k;i++)
-			ret[i+flag]=result[i];
-		flag+=k;
-		pattern.clear();
-		delete[] words;
-		delete[] result;
+		sort(&result[k],match_size);
+		k+=match_size;
 	}
-	for(int i=0;i<flag;i++)
-		cout<<ret[i];
+	for(int i=0;i<k;i++)
+		cout<<result[i]<<'\n';
 	return 0;
 }
