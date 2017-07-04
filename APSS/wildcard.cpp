@@ -1,4 +1,4 @@
-//dynamic programming
+//brute-force faster
 //APSS 8-2
 #include<iostream>
 #include<string>
