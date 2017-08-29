@@ -1,0 +1,12 @@
+{
+    "Name": "Sniper",
+    "Sex": "Male",
+    "Status": {
+        "Level": 37,
+        "Hp": 480,
+        "Health": 270,
+        "Mp": 1200
+    },
+    "Skill": [ "Hide", "Transparency", "Bullet" ],
+    "Score": 2750000
+}
